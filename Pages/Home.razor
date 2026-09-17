@@ -1,0 +1,397 @@
+@page "/home"
+@layout EmptyLayout
+@inject NavigationManager Navigation
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-brand">SCHEDL</div>
+        <div class="sidebar-date">@TodayDate.ToString("yyyy-MM-dd")</div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item @(ActiveView == "today" ? "active" : "")" @onclick='() => ActiveView = "today"'>
+                <span class="nav-icon">◆</span> Today
+            </button>
+            <button class="nav-item @(ActiveView == "week" ? "active" : "")" @onclick='() => ActiveView = "week"'>
+                <span class="nav-icon">▦</span> Week
+            </button>
+            <button class="nav-item @(ActiveView == "events" ? "active" : "")" @onclick='() => ActiveView = "events"'>
+                <span class="nav-icon">◎</span> Events
+            </button>
+        </nav>
+
+        <div class="sidebar-clock">
+            <LiveClock />
+            <button class="signout-btn" @onclick="SignOut">Sign out</button>
+        </div>
+    </aside>
+
+    <main class="main-area">
+
+        @if (ActiveView == "today")
+        {
+            var todays = Events.Where(e => e.Date == TodayDate).OrderBy(e => e.Start).ToList();
+
+            <div class="view-header">
+                <div>
+                    <h1>Today</h1>
+                    <span class="view-subdate">@TodayDate.ToString("MMM d, yyyy")</span>
+                </div>
+                <div class="event-count">@todays.Count events</div>
+            </div>
+
+            <div class="timeline">
+                @foreach (var hour in TimelineHours)
+                {
+                    <div class="timeline-row" style="top:@(RowTop(hour))px;">
+                        <span class="timeline-hour">@hour.ToString("00"):00</span>
+                    </div>
+                }
+
+                @if (ShowNowLine)
+                {
+                    <div class="now-line" style="top:@(NowLineTop())px;"></div>
+                }
+
+                @foreach (var ev in todays)
+                {
+                    var durationMins = (ev.End.ToTimeSpan() - ev.Start.ToTimeSpan()).TotalMinutes;
+                    <div class="event-block cat-@ev.Category.ToLower() @(durationMins < 30 ? "compact" : "")"
+                         style="top:@(EventTop(ev))px; height:@(EventHeight(ev))px;">
+                        <div class="event-block-header">
+                            <span class="event-title">@ev.Title</span>
+                            <span class="event-duration">@FormatDuration(ev)</span>
+                        </div>
+                        @if (durationMins >= 30)
+                        {
+                            <div class="event-time">@ev.Start.ToString("HH:mm") → @ev.End.ToString("HH:mm")</div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(ev.Notes) && durationMins >= 45)
+                        {
+                            <div class="event-notes">@ev.Notes</div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else if (ActiveView == "week")
+        {
+            <div class="view-header">
+                <div>
+                    <h1>Week</h1>
+                    <span class="view-subdate">@WeekStart.ToString("MMM d") - @WeekStart.AddDays(6).ToString("MMM d, yyyy")</span>
+                </div>
+                <div class="week-controls">
+                    <button @onclick="() => WeekOffset--">← prev</button>
+                    <button class="today-btn" @onclick="() => WeekOffset = 0">today</button>
+                    <button @onclick="() => WeekOffset++">next →</button>
+                </div>
+            </div>
+
+            <div class="week-grid">
+                @for (int d = 0; d < 7; d++)
+                {
+                    var day = WeekStart.AddDays(d);
+                    var isToday = day == TodayDate;
+                    <div class="week-day-header @(isToday ? "is-today" : "")">
+                        <span class="dow">@day.ToString("ddd").ToUpper()</span>
+                        <span class="dom">@day.Day</span>
+                    </div>
+                }
+
+                @for (int d = 0; d < 7; d++)
+                {
+                    var day = WeekStart.AddDays(d);
+                    var dayEvents = Events.Where(e => e.Date == day).ToList();
+                    <div class="week-day-col">
+                        @foreach (var hour in TimelineHours)
+                        {
+                            <div class="week-hour-line" style="top:@(RowTop(hour))px;"></div>
+                        }
+                        @foreach (var ev in dayEvents)
+                        {
+                            <div class="event-block week-event cat-@ev.Category.ToLower()"
+                                 style="top:@(EventTop(ev))px; height:@(EventHeight(ev))px;">
+                                <div class="event-title">@ev.Title</div>
+                                <div class="event-time">@ev.Start.ToString("HH:mm")</div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="view-header">
+                <h1>Events</h1>
+            </div>
+
+            <div class="events-layout">
+                <div class="new-event-panel">
+                    <h3>@(EditingEvent is null ? "New Event" : "Edit Event")</h3>
+
+                    <label class="form-label">Title</label>
+                    <input class="form-input" placeholder="Event title" @bind="NewTitle" />
+
+                    <label class="form-label">Date</label>
+                    <input class="form-input" type="date" @bind="NewDate" />
+
+                    <div class="form-row">
+                        <div>
+                            <label class="form-label">Start</label>
+                            <input class="form-input" type="time" @bind="NewStart" />
+                        </div>
+                        <div>
+                            <label class="form-label">End</label>
+                            <input class="form-input" type="time" @bind="NewEnd" />
+                        </div>
+                    </div>
+
+                    <label class="form-label">Category</label>
+                    <div class="category-grid">
+                        @foreach (var cat in Categories)
+                        {
+                            <button class="cat-btn cat-@cat.ToLower() @(NewCategory == cat ? "selected" : "")"
+                                    @onclick="() => NewCategory = cat">
+                                @cat
+                            </button>
+                        }
+                    </div>
+
+                    <label class="form-label">Notes (optional)</label>
+                    <textarea class="form-input form-textarea" placeholder="Add notes..." @bind="NewNotes"></textarea>
+
+                    @if (!string.IsNullOrEmpty(FormError))
+                    {
+                        <div class="form-error">@FormError</div>
+                    }
+
+                    <button class="add-event-btn" @onclick="SaveEvent">@(EditingEvent is null ? "+ Add Event" : "Save Changes")</button>
+                    @if (EditingEvent is not null)
+                    {
+                        <button class="cancel-edit-btn" @onclick="CancelEdit">Cancel</button>
+                    }
+                </div>
+
+                <div class="events-list-panel">
+                    <div class="filter-row">
+                        @foreach (var f in new[] { "All", "Work", "Personal", "Health", "Focus" })
+                        {
+                            <button class="filter-btn @(SelectedFilter == f ? "active" : "")" @onclick="() => SelectedFilter = f">@f</button>
+                        }
+                        <span class="record-count">@FilteredEvents.Count() records</span>
+                    </div>
+
+                    @foreach (var group in FilteredEvents.GroupBy(e => e.Date).OrderBy(g => g.Key))
+                    {
+                        <div class="date-group">
+                            <span class="date-group-label">@group.Key.ToString("yyyy-MM-dd")</span>
+                            <span class="date-group-label-full">@group.Key.ToString("MMM d, yyyy")</span>
+                            @if (group.Key == TodayDate)
+                            {
+                                <span class="today-pill">TODAY</span>
+                            }
+                        </div>
+
+                        @foreach (var ev in group.OrderBy(e => e.Start))
+                        {
+                            <div class="event-row">
+                                <div class="event-row-time">@ev.Start.ToString("HH:mm") → @ev.End.ToString("HH:mm")</div>
+                                <div class="event-row-main">
+                                    <div class="event-row-title">@ev.Title</div>
+                                    @if (!string.IsNullOrWhiteSpace(ev.Notes))
+                                    {
+                                        <div class="event-row-notes">@ev.Notes</div>
+                                    }
+                                </div>
+                                <span class="cat-badge cat-@ev.Category.ToLower()">@ev.Category</span>
+                                <span class="event-row-duration">@FormatDuration(ev)</span>
+                                <button class="edit-btn" @onclick="() => StartEdit(ev)">✎</button>
+                                <button class="remove-btn" @onclick="() => RemoveEvent(ev)">×</button>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </main>
+</div>
+
+@code {
+    private string ActiveView = "today";
+    private string SelectedFilter = "All";
+    private int WeekOffset = 0;
+
+    private readonly DateOnly TodayDate = DateOnly.FromDateTime(DateTime.Now);
+    private readonly int[] TimelineHours = Enumerable.Range(7, 13).ToArray(); // 07:00 -> 19:00
+    private const double PxPerHour = 64;
+
+    private readonly string[] Categories = { "Work", "Personal", "Health", "Focus" };
+
+    private DateOnly WeekStart =>
+        TodayDate.AddDays(-(int)TodayDate.DayOfWeek + (TodayDate.DayOfWeek == DayOfWeek.Sunday ? -6 : 1))
+                 .AddDays(WeekOffset * 7);
+
+    private class ScheduleEvent
+    {
+        public string Title { get; set; } = "";
+        public DateOnly Date { get; set; }
+        public TimeOnly Start { get; set; }
+        public TimeOnly End { get; set; }
+        public string Category { get; set; } = "Work";
+        public string? Notes { get; set; }
+    }
+
+    private List<ScheduleEvent> Events = new();
+
+    private IEnumerable<ScheduleEvent> FilteredEvents =>
+        SelectedFilter == "All" ? Events : Events.Where(e => e.Category == SelectedFilter);
+
+    // new-event / edit form state
+    private string NewTitle = "";
+    private DateOnly? NewDate;
+    private TimeOnly? NewStart;
+    private TimeOnly? NewEnd;
+    private string NewCategory = "Work";
+    private string? NewNotes;
+    private string? FormError;
+    private ScheduleEvent? EditingEvent;
+
+    protected override void OnInitialized()
+    {
+        ResetForm();
+        SeedEvents();
+    }
+
+    private void SeedEvents()
+    {
+        var mon = WeekStart;
+        Events = new List<ScheduleEvent>
+        {
+            new() { Title = "Client call", Date = mon.AddDays(2), Start = new(11,0), End = new(11,45), Category = "Work" },
+            new() { Title = "Morning standup", Date = mon.AddDays(3), Start = new(9,0), End = new(9,15), Category = "Work", Notes = "Sprint sync — review blockers" },
+            new() { Title = "Deep work: auth module", Date = mon.AddDays(3), Start = new(9,30), End = new(12,0), Category = "Focus" },
+            new() { Title = "Lunch", Date = mon.AddDays(3), Start = new(12,0), End = new(13,0), Category = "Personal" },
+            new() { Title = "Code review session", Date = mon.AddDays(3), Start = new(13,0), End = new(14,0), Category = "Work", Notes = "PR #471 — pagination refactor" },
+            new() { Title = "Team retrospective", Date = mon.AddDays(3), Start = new(15,0), End = new(16,0), Category = "Work" },
+            new() { Title = "Gym", Date = mon.AddDays(3), Start = new(17,30), End = new(18,30), Category = "Health" },
+            new() { Title = "Run: 5k", Date = mon.AddDays(4), Start = new(7,0), End = new(7,45), Category = "Health" },
+            new() { Title = "Design review", Date = mon.AddDays(4), Start = new(10,0), End = new(11,0), Category = "Work" },
+            new() { Title = "Architecture planning", Date = mon.AddDays(4), Start = new(14,0), End = new(16,0), Category = "Focus", Notes = "Database sharding proposal" },
+            new() { Title = "Release deploy", Date = mon.AddDays(5), Start = new(9,0), End = new(10,0), Category = "Work" },
+        };
+    }
+
+    private double RowTop(int hour) => (hour - TimelineHours[0]) * PxPerHour;
+
+    private double EventTop(ScheduleEvent ev) =>
+        (ev.Start.Hour - TimelineHours[0]) * PxPerHour + (ev.Start.Minute / 60.0) * PxPerHour;
+
+    private double EventHeight(ScheduleEvent ev)
+    {
+        var minutes = (ev.End.ToTimeSpan() - ev.Start.ToTimeSpan()).TotalMinutes;
+        return Math.Max(minutes / 60.0 * PxPerHour - 3, 26);
+    }
+
+    private bool ShowNowLine => DateTime.Now.Hour >= TimelineHours.First() && DateTime.Now.Hour <= TimelineHours.Last();
+
+    private double NowLineTop()
+    {
+        var now = DateTime.Now;
+        return (now.Hour - TimelineHours[0]) * PxPerHour + (now.Minute / 60.0) * PxPerHour;
+    }
+
+    private string FormatDuration(ScheduleEvent ev)
+    {
+        var mins = (int)(ev.End.ToTimeSpan() - ev.Start.ToTimeSpan()).TotalMinutes;
+        if (mins < 60) return $"{mins}m";
+        var h = mins / 60;
+        var m = mins % 60;
+        return m == 0 ? $"{h}h" : $"{h}h {m}m";
+    }
+
+    private void StartEdit(ScheduleEvent ev)
+    {
+        EditingEvent = ev;
+        NewTitle = ev.Title;
+        NewDate = ev.Date;
+        NewStart = ev.Start;
+        NewEnd = ev.End;
+        NewCategory = ev.Category;
+        NewNotes = ev.Notes;
+        FormError = null;
+        ActiveView = "events";
+    }
+
+    private void CancelEdit()
+    {
+        EditingEvent = null;
+        ResetForm();
+    }
+
+    private void RemoveEvent(ScheduleEvent ev)
+    {
+        Events.Remove(ev);
+        if (EditingEvent == ev)
+        {
+            EditingEvent = null;
+            ResetForm();
+        }
+    }
+
+    private void SaveEvent()
+    {
+        if (string.IsNullOrWhiteSpace(NewTitle) || NewDate is null || NewStart is null || NewEnd is null)
+        {
+            FormError = "Title, date, start and end are required.";
+            return;
+        }
+
+        if (NewEnd <= NewStart)
+        {
+            FormError = "End time must be after start time.";
+            return;
+        }
+
+        if (EditingEvent is not null)
+        {
+            EditingEvent.Title = NewTitle;
+            EditingEvent.Date = NewDate.Value;
+            EditingEvent.Start = NewStart.Value;
+            EditingEvent.End = NewEnd.Value;
+            EditingEvent.Category = NewCategory;
+            EditingEvent.Notes = NewNotes;
+            EditingEvent = null;
+        }
+        else
+        {
+            Events.Add(new ScheduleEvent
+            {
+                Title = NewTitle,
+                Date = NewDate.Value,
+                Start = NewStart.Value,
+                End = NewEnd.Value,
+                Category = NewCategory,
+                Notes = NewNotes
+            });
+        }
+
+        FormError = null;
+        ResetForm();
+    }
+
+    private void SignOut()
+    {
+        // TODO: clear auth/session state once backend auth exists
+        Navigation.NavigateTo("/login");
+    }
+
+    private void ResetForm()
+    {
+        NewTitle = "";
+        NewNotes = null;
+        NewStart = null;
+        NewEnd = null;
+        NewCategory = "Work";
+        NewDate = TodayDate;
+    }
+}

@@ -1,0 +1,67 @@
+@page "/register"
+@layout EmptyLayout
+@inject NavigationManager Navigation
+
+<AuthLayout RightTitle="Plan your day, your way" RightSubtitle="Track events, deadlines, and focus time in one place">
+    <div class="auth-form-area">
+        <h2>Create your account</h2>
+        <p class="subtext">
+            Already have an account?
+            You can <a href="/login">Login here!</a>
+        </p>
+
+        <EditForm Model="@model" OnValidSubmit="HandleRegister">
+            <div class="field">
+                <label>Email</label>
+                <div class="input-row">
+                    <span class="icon">✉</span>
+                    <InputText @bind-Value="model.Email" placeholder="Enter your email address" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Username</label>
+                <div class="input-row">
+                    <span class="icon">👤</span>
+                    <InputText @bind-Value="model.Username" placeholder="Enter your user name" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Password</label>
+                <div class="input-row">
+                    <span class="icon">🔒</span>
+                    <InputText type="password" @bind-Value="model.Password" placeholder="Enter your password" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Confirm Password</label>
+                <div class="input-row">
+                    <span class="icon">🔒</span>
+                    <InputText type="password" @bind-Value="model.ConfirmPassword" placeholder="Confirm your password" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Register</button>
+        </EditForm>
+    </div>
+</AuthLayout>
+
+@code {
+    private RegisterModel model = new();
+
+    private void HandleRegister()
+    {
+        // TODO: create account against backend before navigating
+        Navigation.NavigateTo("/login");
+    }
+
+    private class RegisterModel
+    {
+        public string Email { get; set; } = "";
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

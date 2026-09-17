@@ -1,0 +1,112 @@
+/* Shared (non-scoped) form styles — reference from Register.razor and Login.razor */
+
+.auth-form-area h2 {
+    margin: 0 0 4px 0;
+    font-size: 1.6rem;
+    color: #f4f4f5;
+}
+
+.auth-form-area .subtext {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.auth-form-area .subtext a {
+    color: #2dd4bf;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+.field label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.field .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #2a2d34;
+    padding-bottom: 6px;
+}
+
+.field .input-row input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 0.95rem;
+    background: transparent;
+    color: #f4f4f5;
+}
+
+.field .input-row .icon {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #14b8a6;
+    color: #04211d;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.btn-primary:hover {
+    background: #2dd4bf;
+}
+
+.social-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.social-btn {
+    border: 1px solid #2a2d34;
+    background: #1a1d24;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.social-btn:hover {
+    border-color: #14b8a6;
+}
+
+.social-icon {
+    height: 24px;
+    width: auto;
+    max-width: 24px;
+    object-fit: contain;
+    display: block;
+}
+
+.remember-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+    color: #9ca3af;
+}
+
+.remember-row a {
+    color: #2dd4bf;
+    text-decoration: none;
+}

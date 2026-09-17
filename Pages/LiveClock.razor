@@ -1,0 +1,20 @@
+@implements IDisposable
+
+<div class="clock-time">@_now.ToString("HH:mm:ss")</div>
+<div class="clock-tz">UTC+08:00</div>
+
+@code {
+    private DateTime _now = DateTime.Now;
+    private System.Threading.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        _timer = new System.Threading.Timer(_ =>
+        {
+            _now = DateTime.Now;
+            InvokeAsync(StateHasChanged);
+        }, null, 1000, 1000);
+    }
+
+    public void Dispose() => _timer?.Dispose();
+}

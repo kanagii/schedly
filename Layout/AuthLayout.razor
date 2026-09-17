@@ -1,0 +1,25 @@
+@* Shared split-panel layout used by Register.razor and Login.razor *@
+
+<div class="auth-wrapper">
+    <div class="auth-left">
+        <div class="auth-logo">
+            <img src="images/citcreds-logo.svg" alt="CITCreds" />
+            <span>CITCreds</span>
+        </div>
+
+        <div class="auth-form-area">
+            @ChildContent
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <h1>@RightTitle</h1>
+        <p>@RightSubtitle</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string RightTitle { get; set; } = "";
+    [Parameter] public string RightSubtitle { get; set; } = "Let's get you started!";
+}

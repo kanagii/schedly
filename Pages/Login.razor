@@ -1,0 +1,88 @@
+@page "/login"
+@layout EmptyLayout
+@inject NavigationManager Navigation
+
+<AuthLayout RightTitle="Welcome back" RightSubtitle="Your schedule is waiting for you">
+    <div class="auth-form-area">
+        <h2>Sign in</h2>
+        <p class="subtext">
+            Don't have an account?
+            You can <a href="/register">Register here!</a>
+        </p>
+
+        <EditForm Model="@model" OnValidSubmit="HandleLogin">
+            <div class="field">
+                <label>Email</label>
+                <div class="input-row">
+                    <span class="icon">✉</span>
+                    <InputText @bind-Value="model.Email" placeholder="Enter your email" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Password</label>
+                <div class="input-row">
+                    <span class="icon">🔒</span>
+                    <InputText type="password" @bind-Value="model.Password" placeholder="Enter your password" />
+                </div>
+            </div>
+
+            <div class="remember-row">
+                <label>
+                    <input type="checkbox" @bind="model.RememberMe" /> Remember me
+                </label>
+                <a href="/forgot-password">Forgot Password ?</a>
+            </div>
+
+            <button type="submit" class="btn-primary">Login</button>
+        </EditForm>
+
+        <p class="subtext" style="text-align:center; margin-top:20px;">or continue with</p>
+        <div class="social-row">
+            <button type="button" class="social-btn" @onclick="HandleFacebookLogin">
+                <img src="images/facebook-logo.png" alt="Facebook" class="social-icon" />
+            </button>
+            <button type="button" class="social-btn" @onclick="HandleGoogleLogin">
+                <img src="images/google-logo.png" alt="Google" class="social-icon" />
+            </button>
+            <button type="button" class="social-btn" @onclick="HandleAppleLogin">
+                <img src="images/apple-logo.png" alt="Apple" class="social-icon" />
+            </button>
+        </div>
+    </div>
+</AuthLayout>
+
+@code {
+    private LoginModel model = new();
+
+    private void HandleLogin()
+    {
+        // TODO: validate credentials against backend before navigating
+        Navigation.NavigateTo("/home");
+    }
+
+    private void HandleFacebookLogin()
+    {
+        // TODO: wire up Facebook OAuth
+        Navigation.NavigateTo("/home");
+    }
+
+    private void HandleGoogleLogin()
+    {
+        // TODO: wire up Google OAuth
+        Navigation.NavigateTo("/home");
+    }
+
+    private void HandleAppleLogin()
+    {
+        // TODO: wire up Apple OAuth
+        Navigation.NavigateTo("/home");
+    }
+
+    private class LoginModel
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public bool RememberMe { get; set; }
+    }
+}
