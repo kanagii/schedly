@@ -1,20 +1,34 @@
 @implements IDisposable
 
-<div class="clock-time">@_now.ToString("HH:mm:ss")</div>
-<div class="clock-tz">UTC+08:00</div>
+<div class="font-mono text-lg font-medium text-gray-200 tracking-tight">@_now.ToString("HH:mm:ss")</div>
+<div class="text-[0.68rem] text-gray-600">UTC+08:00</div>
 
 @code {
     private DateTime _now = DateTime.Now;
     private System.Threading.Timer? _timer;
+    private bool _disposed;
 
     protected override void OnInitialized()
     {
         _timer = new System.Threading.Timer(_ =>
         {
+            if (_disposed) return;
+
             _now = DateTime.Now;
-            InvokeAsync(StateHasChanged);
+            try
+            {
+                InvokeAsync(StateHasChanged);
+            }
+            catch (ObjectDisposedException)
+            {
+                // component was torn down between the tick firing and this call
+            }
         }, null, 1000, 1000);
     }
 
-    public void Dispose() => _timer?.Dispose();
+    public void Dispose()
+    {
+        _disposed = true;
+        _timer?.Dispose();
+    }
 }
