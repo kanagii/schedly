@@ -3,65 +3,197 @@
 @inject NavigationManager Navigation
 
 <AuthLayout RightTitle="Plan your day, your way" RightSubtitle="Track events, deadlines, and focus time in one place">
-    <div class="auth-form-area">
-        <h2>Create your account</h2>
-        <p class="subtext">
+    <div class="w-full max-w-[360px]">
+        <h2 class="text-[1.75rem] font-semibold tracking-tight text-gray-50 mb-1.5">Create your account</h2>
+        <p class="text-sm text-gray-500 mb-8">
             Already have an account?
-            You can <a href="/login">Login here!</a>
+            <a href="/login" class="text-[#2dd4bf] font-medium hover:text-[#5eead4] transition-colors">Login here</a>
         </p>
 
-        <EditForm Model="@model" OnValidSubmit="HandleRegister">
-            <div class="field">
-                <label>Email</label>
-                <div class="input-row">
-                    <span class="icon">✉</span>
-                    <InputText @bind-Value="model.Email" placeholder="Enter your email address" />
+        <EditForm Model="@model" OnSubmit="HandleRegister" class="space-y-5">
+
+            @if (!string.IsNullOrEmpty(serverError))
+            {
+                <div class="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-400">
+                    @serverError
+                </div>
+            }
+
+            <div>
+                <label for="register-email" class="block text-xs font-medium text-gray-500 mb-1.5">Email</label>
+                <div class="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2.5 focus-within:border-[#2dd4bf]/50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 5L2 7" />
+                    </svg>
+                    <InputText id="register-email" @bind-Value="model.Email" placeholder="Enter your email address"
+                               autocomplete="email"
+                               class="border-0 outline-none flex-1 text-sm bg-transparent text-gray-100 placeholder:text-gray-600" />
                 </div>
             </div>
 
-            <div class="field">
-                <label>Username</label>
-                <div class="input-row">
-                    <span class="icon">👤</span>
-                    <InputText @bind-Value="model.Username" placeholder="Enter your user name" />
+            <div>
+                <label for="register-username" class="block text-xs font-medium text-gray-500 mb-1.5">Username</label>
+                <div class="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2.5 focus-within:border-[#2dd4bf]/50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21a8 8 0 0 0-16 0" /><circle cx="12" cy="8" r="5" />
+                    </svg>
+                    <InputText id="register-username" @bind-Value="model.Username" placeholder="Enter your user name"
+                               autocomplete="username"
+                               class="border-0 outline-none flex-1 text-sm bg-transparent text-gray-100 placeholder:text-gray-600" />
                 </div>
             </div>
 
-            <div class="field">
-                <label>Password</label>
-                <div class="input-row">
-                    <span class="icon">🔒</span>
-                    <InputText type="password" @bind-Value="model.Password" placeholder="Enter your password" />
+            <div>
+                <label for="register-password" class="block text-xs font-medium text-gray-500 mb-1.5">Password</label>
+                <div class="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2.5 focus-within:border-[#2dd4bf]/50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <InputText id="register-password" type="@(showPassword ? "text" : "password")"
+                               @bind-Value="model.Password" @bind-Value:event="oninput"
+                               placeholder="Enter your password" autocomplete="new-password"
+                               class="border-0 outline-none flex-1 text-sm bg-transparent text-gray-100 placeholder:text-gray-600" />
+                    <button type="button" @onclick="() => showPassword = !showPassword"
+                            aria-label="@(showPassword ? "Hide password" : "Show password")"
+                            class="shrink-0 text-gray-500 hover:text-gray-300 transition-colors">
+                        @if (showPassword)
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" /><circle cx="12" cy="12" r="3" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(model.Password))
+                {
+                    var strength = GetPasswordStrength(model.Password);
+                    <div class="flex items-center gap-1.5 mt-2">
+                        @for (var i = 0; i < 4; i++)
+                        {
+                            var filled = i < strength.Score;
+                            <div class="h-1 flex-1 rounded-full transition-colors @(filled ? strength.ColorClass : "bg-white/10")"></div>
+                        }
+                        <span class="text-[0.7rem] text-gray-500 ml-1 w-10 text-right">@strength.Label</span>
+                    </div>
+                }
+            </div>
+
+            <div>
+                <label for="register-confirm-password" class="block text-xs font-medium text-gray-500 mb-1.5">Confirm Password</label>
+                <div class="flex items-center gap-2.5 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2.5 focus-within:border-[#2dd4bf]/50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <InputText id="register-confirm-password" type="@(showConfirmPassword ? "text" : "password")"
+                               @bind-Value="model.ConfirmPassword" placeholder="Confirm your password"
+                               autocomplete="new-password"
+                               class="border-0 outline-none flex-1 text-sm bg-transparent text-gray-100 placeholder:text-gray-600" />
+                    <button type="button" @onclick="() => showConfirmPassword = !showConfirmPassword"
+                            aria-label="@(showConfirmPassword ? "Hide password" : "Show password")"
+                            class="shrink-0 text-gray-500 hover:text-gray-300 transition-colors">
+                        @if (showConfirmPassword)
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.06M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" /><circle cx="12" cy="12" r="3" />
+                            </svg>
+                        }
+                    </button>
                 </div>
             </div>
 
-            <div class="field">
-                <label>Confirm Password</label>
-                <div class="input-row">
-                    <span class="icon">🔒</span>
-                    <InputText type="password" @bind-Value="model.ConfirmPassword" placeholder="Confirm your password" />
-                </div>
+            <div>
+                <label class="flex items-start gap-2 text-xs text-gray-500 cursor-pointer !mt-6">
+                    <input type="checkbox" @bind="model.AgreeToTerms" class="accent-[#14b8a6] mt-0.5" />
+                    <span>I agree to the <a href="/terms" class="text-[#2dd4bf] hover:text-[#5eead4] transition-colors">Terms of Service</a> and <a href="/privacy" class="text-[#2dd4bf] hover:text-[#5eead4] transition-colors">Privacy Policy</a></span>
+                </label>
             </div>
 
-            <button type="submit" class="btn-primary">Register</button>
+            <button type="submit" disabled="@isSubmitting"
+                    class="w-full py-2.5 rounded-lg border-0 bg-[#14b8a6] hover:bg-[#2dd4bf] disabled:bg-[#14b8a6]/50 disabled:cursor-not-allowed text-[#04211d] text-sm font-semibold cursor-pointer transition-colors !mt-7 flex items-center justify-center gap-2">
+                @if (isSubmitting)
+                {
+                    <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.37 0 0 5.37 0 12h4Z"></path>
+                    </svg>
+                    <span>Creating account...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </button>
         </EditForm>
     </div>
 </AuthLayout>
 
 @code {
     private RegisterModel model = new();
+    private bool showPassword = false;
+    private bool showConfirmPassword = false;
+    private bool isSubmitting = false;
+    private string? serverError;
 
-    private void HandleRegister()
+    private static (int Score, string Label, string ColorClass) GetPasswordStrength(string? password)
     {
-        // TODO: create account against backend before navigating
-        Navigation.NavigateTo("/login");
+        var value = password ?? "";
+        var score = 0;
+        if (value.Length >= 8) score++;
+        if (value.Any(char.IsUpper) && value.Any(char.IsLower)) score++;
+        if (value.Any(char.IsDigit)) score++;
+        if (value.Any(c => !char.IsLetterOrDigit(c))) score++;
+
+        return score switch
+        {
+            <= 1 => (score, "Weak", "bg-rose-500"),
+            2 => (score, "Fair", "bg-amber-400"),
+            3 => (score, "Good", "bg-[#2dd4bf]"),
+            _ => (score, "Strong", "bg-[#14b8a6]"),
+        };
+    }
+
+    private async Task HandleRegister()
+    {
+        serverError = null;
+        isSubmitting = true;
+        try
+        {
+            // TODO: create account against backend before navigating
+            await Task.Delay(600);
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception)
+        {
+            serverError = "Something went wrong creating your account. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 
     private class RegisterModel
     {
         public string Email { get; set; } = "";
+
         public string Username { get; set; } = "";
+
         public string Password { get; set; } = "";
+
         public string ConfirmPassword { get; set; } = "";
+
+        public bool AgreeToTerms { get; set; }
     }
 }
