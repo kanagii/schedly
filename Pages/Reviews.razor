@@ -1,0 +1,342 @@
+@page "/reviews"
+@layout EmptyLayout
+
+<div class="min-h-screen bg-[#0b0d11] text-gray-200 font-sans">
+
+    <header class="border-b border-white/[0.06] bg-[#0e1013]">
+        <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+            <a href="/home" class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+                Back to schedule
+            </a>
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-[#14b8a6]/10 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#2dd4bf]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold tracking-tight text-gray-50">Schedly</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-10">
+
+        <div class="mb-8">
+            <h1 class="m-0 text-2xl font-semibold tracking-tight text-gray-50">Ratings &amp; comments</h1>
+            <p class="mt-1 text-sm text-gray-500">Tell us how Schedly is working for you.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
+
+            <!-- Left column: summary + form -->
+            <div class="space-y-6 lg:sticky lg:top-6">
+
+                <section class="bg-[#0e1013] border border-white/[0.06] rounded-xl p-5">
+                    <div class="flex items-end gap-4">
+                        <div class="text-5xl font-semibold tracking-tight text-gray-50 leading-none">@AverageText</div>
+                        <div class="pb-0.5">
+                            <div class="flex gap-0.5">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 @(i <= Math.Round(Average) ? "text-[#2dd4bf]" : "text-gray-700")" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                    </svg>
+                                }
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">@ReviewList.Count @(ReviewList.Count == 1 ? "review" : "reviews")</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 space-y-2">
+                        @for (int s = 5; s >= 1; s--)
+                        {
+                            var star = s;
+                            var count = ReviewList.Count(r => r.Rating == star);
+                            var pct = ReviewList.Count == 0 ? 0 : count * 100 / ReviewList.Count;
+                            <button class="w-full flex items-center gap-3 border-0 bg-transparent p-0 cursor-pointer group"
+                                    @onclick="() => ToggleStarFilter(star)">
+                                <span class="w-3 text-xs text-gray-500 text-right">@star</span>
+                                <div class="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-300 @(StarFilter == star ? "bg-[#2dd4bf]" : "bg-[#14b8a6]/60 group-hover:bg-[#14b8a6]")" style="width:@(pct)%"></div>
+                                </div>
+                                <span class="w-6 text-xs text-gray-600 text-right">@count</span>
+                            </button>
+                        }
+                    </div>
+                </section>
+
+                <section class="bg-[#0e1013] border border-white/[0.06] rounded-xl p-5">
+                    <h2 class="mt-0 mb-4 text-[0.95rem] font-semibold text-gray-100">Leave a review</h2>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[0.7rem] font-medium text-gray-500 mb-1.5">Your rating</label>
+                            <div class="flex items-center gap-1" @onmouseleave="() => hoverRating = 0">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    var star = i;
+                                    <button type="button" aria-label="@star out of 5"
+                                            class="p-0.5 border-0 bg-transparent cursor-pointer transition-transform hover:scale-110"
+                                            @onmouseover="() => hoverRating = star"
+                                            @onclick="() => SetRating(star)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 transition-colors @(star <= (hoverRating > 0 ? hoverRating : rating) ? "text-[#2dd4bf]" : "text-gray-700")" viewBox="0 0 24 24" fill="currentColor">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                        </svg>
+                                    </button>
+                                }
+                                <span class="ml-2 text-xs text-gray-500 w-16">@RatingLabel(hoverRating > 0 ? hoverRating : rating)</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[0.7rem] font-medium text-gray-500 mb-1.5">Name (optional)</label>
+                            <input class="w-full bg-white/[0.03] border border-white/[0.08] text-gray-100 px-3 py-2 rounded-lg text-[0.85rem] outline-none focus:border-[#2dd4bf]/50 transition-colors placeholder:text-gray-600"
+                                   placeholder="Anonymous" maxlength="30" @bind="author" @bind:event="oninput" />
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5">
+                                <label class="block text-[0.7rem] font-medium text-gray-500">Comment</label>
+                                <span class="text-[0.68rem] @(comment.Length > MaxComment - 30 ? "text-amber-400" : "text-gray-600")">@comment.Length/@MaxComment</span>
+                            </div>
+                            <textarea class="w-full bg-white/[0.03] border border-white/[0.08] text-gray-100 px-3 py-2 rounded-lg text-[0.85rem] outline-none focus:border-[#2dd4bf]/50 transition-colors resize-none min-h-[96px] placeholder:text-gray-600"
+                                      placeholder="What did you like? What could be better?" maxlength="@MaxComment"
+                                      @bind="comment" @bind:event="oninput"></textarea>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(formError))
+                    {
+                        <div class="text-rose-400 text-[0.75rem] mt-3">@formError</div>
+                    }
+                    @if (submitted)
+                    {
+                        <div class="text-[#2dd4bf] text-[0.75rem] mt-3">Thanks — your review has been posted.</div>
+                    }
+
+                    <button class="w-full mt-4 py-2.5 rounded-lg border-0 bg-[#14b8a6] hover:bg-[#2dd4bf] text-[#04211d] text-sm font-semibold cursor-pointer transition-colors"
+                            @onclick="Submit">
+                        Post review
+                    </button>
+                </section>
+            </div>
+
+            <!-- Right column: list -->
+            <section>
+                <div class="flex items-center gap-2 mb-5 flex-wrap">
+                    @foreach (var (key, label) in SortOptions)
+                    {
+                        <button class="px-3.5 py-1.5 rounded-full border cursor-pointer text-[0.78rem] font-medium transition-colors @(sort == key ? "bg-[#14b8a6] text-[#04211d] border-[#14b8a6]" : "border-white/[0.08] bg-white/[0.03] text-gray-500 hover:text-gray-300")"
+                                @onclick="() => sort = key">
+                            @label
+                        </button>
+                    }
+
+                    @if (StarFilter is not null)
+                    {
+                        <button class="px-3 py-1.5 rounded-full border border-[#14b8a6]/30 bg-[#14b8a6]/10 text-[#2dd4bf] text-[0.78rem] font-medium cursor-pointer flex items-center gap-1.5"
+                                @onclick="() => StarFilter = null">
+                            @StarFilter ★ only
+                            <span class="text-[#2dd4bf]/70">×</span>
+                        </button>
+                    }
+
+                    <span class="ml-auto text-gray-600 text-[0.78rem]">@Visible.Count shown</span>
+                </div>
+
+                @if (Visible.Count == 0)
+                {
+                    <div class="bg-[#0e1013] border border-dashed border-white/[0.08] rounded-xl py-16 text-center text-sm text-gray-500">
+                        No reviews yet. Be the first to leave one.
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var r in Visible)
+                        {
+                            <article class="group bg-[#0e1013] border border-white/[0.06] hover:border-white/[0.12] rounded-xl px-5 py-4 transition-colors">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-[#14b8a6]/10 text-[#2dd4bf] text-xs font-semibold flex items-center justify-center shrink-0">
+                                        @Initial(r.Author)
+                                    </div>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-sm font-medium text-gray-100 truncate">@r.Author</span>
+                                            <span class="text-xs text-gray-600">@FormatAgo(r.Date)</span>
+                                            @if (r.IsMine)
+                                            {
+                                                <span class="text-[0.62rem] font-medium px-1.5 py-0.5 rounded-full bg-[#14b8a6]/10 text-[#2dd4bf]">You</span>
+                                            }
+                                        </div>
+
+                                        <div class="flex gap-0.5 mt-1">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 @(i <= r.Rating ? "text-[#2dd4bf]" : "text-gray-700")" viewBox="0 0 24 24" fill="currentColor">
+                                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                                </svg>
+                                            }
+                                        </div>
+
+                                        <p class="mt-2 mb-0 text-sm leading-relaxed text-gray-400 break-words">@r.Comment</p>
+                                    </div>
+
+                                    @if (r.IsMine)
+                                    {
+                                        <button class="p-1.5 rounded-md bg-transparent border-0 text-gray-600 cursor-pointer opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-white/[0.06] transition"
+                                                aria-label="Delete review" @onclick="() => Remove(r)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                            </svg>
+                                        </button>
+                                    }
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    </main>
+</div>
+
+@code {
+    private const int MaxComment = 300;
+
+    private class Review
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Author { get; set; } = "Anonymous";
+        public int Rating { get; set; }
+        public string Comment { get; set; } = "";
+        public DateTime Date { get; set; }
+        public bool IsMine { get; set; }
+    }
+
+    private static readonly (string Key, string Label)[] SortOptions =
+    {
+        ("newest", "Newest"),
+        ("highest", "Highest"),
+        ("lowest", "Lowest")
+    };
+
+    private List<Review> ReviewList = new();
+
+    // form state
+    private int rating;
+    private int hoverRating;
+    private string author = "";
+    private string comment = "";
+    private string? formError;
+    private bool submitted;
+
+    // list state
+    private string sort = "newest";
+    private int? StarFilter;
+
+    protected override void OnInitialized()
+    {
+        var now = DateTime.Now;
+        ReviewList = new List<Review>
+        {
+            new() { Author = "Maya R.", Rating = 5, Date = now.AddHours(-3), Comment = "The week view finally lets me see my whole schedule at a glance. Clean and fast." },
+            new() { Author = "Jon", Rating = 4, Date = now.AddDays(-1), Comment = "Love the dark theme. Would be great to have reminders before an event starts." },
+            new() { Author = "Ade", Rating = 5, Date = now.AddDays(-2), Comment = "Adding and editing events takes seconds. Exactly what I needed for classes." },
+            new() { Author = "Priya S.", Rating = 3, Date = now.AddDays(-4), Comment = "Nice and minimal, but I'd like recurring events." },
+            new() { Author = "Leo", Rating = 4, Date = now.AddDays(-6), Comment = "Categories with colors make the timeline easy to read." },
+        };
+    }
+
+    private double Average => ReviewList.Count == 0 ? 0 : ReviewList.Average(r => r.Rating);
+    private string AverageText => ReviewList.Count == 0 ? "–" : Average.ToString("0.0");
+
+    private List<Review> Visible
+    {
+        get
+        {
+            IEnumerable<Review> q = ReviewList;
+            if (StarFilter is int s) q = q.Where(r => r.Rating == s);
+
+            return sort switch
+            {
+                "highest" => q.OrderByDescending(r => r.Rating).ThenByDescending(r => r.Date).ToList(),
+                "lowest" => q.OrderBy(r => r.Rating).ThenByDescending(r => r.Date).ToList(),
+                _ => q.OrderByDescending(r => r.Date).ToList()
+            };
+        }
+    }
+
+    private void SetRating(int value)
+    {
+        rating = value;
+        formError = null;
+        submitted = false;
+    }
+
+    private void ToggleStarFilter(int star) => StarFilter = StarFilter == star ? null : star;
+
+    private void Submit()
+    {
+        submitted = false;
+
+        if (rating == 0)
+        {
+            formError = "Please choose a star rating.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            formError = "Please write a short comment.";
+            return;
+        }
+
+        ReviewList.Add(new Review
+        {
+            Author = string.IsNullOrWhiteSpace(author) ? "Anonymous" : author.Trim(),
+            Rating = rating,
+            Comment = comment.Trim(),
+            Date = DateTime.Now,
+            IsMine = true
+        });
+
+        rating = 0;
+        hoverRating = 0;
+        author = "";
+        comment = "";
+        formError = null;
+        submitted = true;
+        sort = "newest";
+        StarFilter = null;
+    }
+
+    private void Remove(Review review) => ReviewList.Remove(review);
+
+    private static string RatingLabel(int value) => value switch
+    {
+        1 => "Poor",
+        2 => "Fair",
+        3 => "Good",
+        4 => "Great",
+        5 => "Excellent",
+        _ => ""
+    };
+
+    private static string Initial(string name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[0].ToString().ToUpper();
+
+    private static string FormatAgo(DateTime date)
+    {
+        var span = DateTime.Now - date;
+        if (span.TotalMinutes < 1) return "Just now";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h ago";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}d ago";
+        return date.ToString("MMM d, yyyy");
+    }
+}
